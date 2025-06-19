@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简化版养老金计算器</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .calculator {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .input-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #e8f4fc;
+            border-radius: 5px;
+        }
+        .result-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .breakdown {
+            margin-top: 15px;
+        }
+        .note {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f2f2f2;
+            border-left: 3px solid #95a5a6;
+        }
+        .fixed-value {
+            color: #3498db;
+            font-weight: bold;
+        }
+        .hint, .fixed-value small {
+            color: #666;
+            font-size: 0.8em;
+            margin-top: 5px;
+            line-height: 1.4;
+            font-weight: normal;
+            display: block;
+        }
+        @media (max-width: 600px) {
+            .input-group {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>简化版养老金计算器</h1>
+        <p>专为自由职业者和计划提前退休人士设计</p>
+        
+        <div class="input-section">
+            <h3>基本信息</h3>
+            <div class="input-group">
+                <label for="current-age">当前年龄：</label>
+                <input type="number" id="current-age" min="16" max="70" value="40">
+            </div>
+            <div class="input-group">
+                <label for="retirement-age">计划退休年龄：</label>
+                <input type="number" id="retirement-age" min="40" max="70" value="55">
+                <p class="hint">建议参考：女性建议填60岁，男性建议填65岁（根据现行法定退休年龄）</p>
+            </div>
+            <div class="input-group">
+                <label for="region">所在地区：</label>
+                <select id="region">
+                    <option value="beijing">北京</option>
+                    <option value="shanghai">上海</option>
+                    <option value="guangzhou">广州</option>
+                    <option value="shenzhen">深圳</option>
+                    <option value="other">其他城市</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <h3>社保缴纳历史</h3>
+            <div class="input-group">
+                <label for="paid-years">已缴纳年限：</label>
+                <input type="number" id="paid-years" min="0" max="50" value="15">
+            </div>
+            <div class="input-group">
+                <label>历史平均缴费指数：</label>
+                <p class="fixed-value">固定值：2.3 
+                    <small>(估算参考：薪资＞3万的时间超过70%填2.5，超过50%填2)</small>
+                </p>
+            </div>
+            <div class="input-group">
+                <label for="current-balance">当前个人账户余额(元)：</label>
+                <input type="number" id="current-balance" value="100000">
+                <p class="hint">查询方式：登录支付宝/京通小程序 → 社保服务 → 查询2024年个人账户结算单</p>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <h3>未来缴纳计划</h3>
+            <div class="input-group">
+                <label for="future-years">计划继续缴纳年限：</label>
+                <input type="number" id="future-years" min="0" max="30" value="5">
+            </div>
+            <div class="input-group">
+                <label>未来缴费指数：</label>
+                <p class="fixed-value">固定值：0.6 
+                    <small>(最低档，对应灵活就业自主缴费的60%基数档位)</small>
+                </p>
+            </div>
+            <div class="input-group">
+                <label>个人账户记账利率：</label>
+                <p class="fixed-value">固定值：3%</p>
+            </div>
+        </div>
+        
+        <button id="calculate-btn" onclick="calculatePension()">计算养老金</button>
+        
+        <div class="result-section" id="result">
+            <h2>预估养老金结果</h2>
+            <p>退休时每月可领取：<span class="result-value" id="monthly-pension">0</span>元</p>
+            
+            <div class="breakdown">
+                <h3>详细组成：</h3>
+                <p>基础养老金：<span id="basic-pension">0</span>元</p>
+                <p>个人账户养老金：<span id="personal-pension">0</span>元</p>
+            </div>
+            
+            <div class="note">
+                <p><strong>说明：</strong>本计算结果仅供参考，实际养老金以社保局核算为准。计算基于当前政策，不考虑未来政策变化。</p>
+                <p>基础养老金 = (退休时当地社平工资 + 本人指数化月均工资) ÷ 2 × 缴费年限 × 1%</p>
+                <p>个人账户养老金 = 个人账户余额 ÷ 计发月数</p>
+                <p><strong>固定参数：</strong>历史缴费指数=2.3，未来缴费指数=0.6，记账利率=3%</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 地区社会平均工资数据(2023年)
+        const regionData = {
+            beijing: { current: 11282, growthRate: 0.03 },
+            shanghai: { current: 12183, growthRate: 0.03 },
+            guangzhou: { current: 10449, growthRate: 0.025 },
+            shenzhen: { current: 12964, growthRate: 0.03 },
+            other: { current: 8000, growthRate: 0.02 }
+        };
+
+        // 退休年龄对应的计发月数
+        const monthsTable = {
+            40: 233, 41: 230, 42: 226, 43: 223, 44: 220, 
+            45: 216, 46: 212, 47: 208, 48: 204, 49: 199,
+            50: 195, 51: 190, 52: 185, 53: 180, 54: 175, 
+            55: 170, 56: 164, 57: 158, 58: 152, 59: 145,
+            60: 139, 61: 132, 62: 125, 63: 117, 64: 109,
+            65: 101
+        };
+
+        function calculatePension() {
+            // 获取用户输入
+            const currentAge = parseInt(document.getElementById('current-age').value);
+            const retirementAge = parseInt(document.getElementById('retirement-age').value);
+            const region = document.getElementById('region').value;
+            const paidYears = parseInt(document.getElementById('paid-years').value);
+            const currentBalance = parseFloat(document.getElementById('current-balance').value);
+            const futureYears = parseInt(document.getElementById('future-years').value);
+            
+            // 固定值设置
+            const historyIndex = 2.3;  // 固定历史缴费指数
+            const futureIndex = 0.6;    // 固定未来缴费指数
+            const interestRate = 0.03;  // 固定记账利率3%
+            
+            // 验证输入
+            if (retirementAge <= currentAge) {
+                alert("退休年龄必须大于当前年龄！");
+                return;
+            }
+            
+            if (paidYears + futureYears < 15) {
+                alert("总缴费年限不足15年，不符合最低领取条件！");
+                return;
+            }
+            
+            // 计算总缴费年限
+            const totalYears = paidYears + futureYears;
+            
+            // 计算退休时的社会平均工资
+            const yearsToRetirement = retirementAge - currentAge;
+            const regionInfo = regionData[region];
+            const futureSalary = regionInfo.current * Math.pow(1 + regionInfo.growthRate, yearsToRetirement);
+            
+            // 计算平均缴费指数
+            const avgIndex = ((paidYears * historyIndex) + (futureYears * futureIndex)) / totalYears;
+            
+            // 计算基础养老金
+            const basicPension = (futureSalary + futureSalary * avgIndex) / 2 * totalYears * 0.01;
+            
+            // 计算个人账户余额(含未来缴费和利息)
+            let futureBalance = currentBalance * Math.pow(1 + interestRate, yearsToRetirement);
+            
+            // 计算未来每年缴费的终值
+            const annualPayment = futureSalary * futureIndex * 0.2 * 12; // 20%缴费比例
+            for (let i = 1; i <= futureYears; i++) {
+                futureBalance += annualPayment * Math.pow(1 + interestRate, i);
+            }
+            
+            // 计算个人账户养老金
+            const months = monthsTable[retirementAge] || 139; // 默认按60岁计算
+            const personalPension = futureBalance / months;
+            
+            // 显示结果
+            document.getElementById('monthly-pension').textContent = (basicPension + personalPension).toFixed(2);
+            document.getElementById('basic-pension').textContent = basicPension.toFixed(2);
+            document.getElementById('personal-pension').textContent = personalPension.toFixed(2);
+            
+            // 显示结果区域
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
